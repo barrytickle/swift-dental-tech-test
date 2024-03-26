@@ -1,5 +1,20 @@
 import "flowbite";
 
+const showMessage = (message) => {
+    try {
+        const container = document.querySelector("#results-container");
+        if (!!!container) return;
+
+        container.querySelector("h1")?.remove();
+        container.insertAdjacentHTML(
+            "beforeend",
+            `<h1 class="text-2xl" style="text-transform:capitalize">${message}</h1>`
+        );
+    } catch (error) {
+        console.warn(error);
+    }
+};
+
 const submitFormData = async (url, contents) => {
     try {
         console.log(contents);
@@ -21,23 +36,21 @@ const submitFormData = async (url, contents) => {
         const json = await response.json();
 
         if (json.status === "success") {
-            const container = document.querySelector("#results-container");
-            if (!!!container) return;
-
-            container.querySelector("h1")?.remove();
-
-            container.insertAdjacentHTML(
-                "beforeend",
-                `<h1 class="text-2xl" style="text-transform:capitalize">${url
-                    .replace("/", "")
-                    .replace(/-/g, " ")}: ${json.value}</h1>`
+            showMessage(
+                url.replace("/", "").replace(/-/g, " ") + " : " + json.value
             );
+        } else {
+            console.log(json);
+            showMessage("Error: " + json.value);
         }
     } catch (error) {
         console.log(error);
         return;
     }
 };
+
+const checkForNumbers = (value) => /\d/.test(value);
+const checkForLetters = (value) => /\D/.test(value);
 
 const bindFormSubmits = () => {
     const forms = document.querySelectorAll("form");
@@ -48,12 +61,42 @@ const bindFormSubmits = () => {
         form.querySelector("button")?.addEventListener("click", function () {
             const input = form?.querySelector("input");
 
+            if (input.value === "") {
+                showMessage("Error: Cannot submit empty input");
+                return;
+            }
+
             const id = form.getAttribute("id");
             let url;
 
-            if (id === "roman-to-number") url = "/roman-to-number";
-            if (id === "number-to-roman") url = "/number-to-roman";
+            if (!!!input) return;
+            console.log("input found", input, input.value);
+            if (!!!id) return;
 
+            console.log("ID found", id);
+            if (id === "roman-to-number") {
+                url = "/roman-to-number";
+                if (checkForNumbers(input.value)) {
+                    showMessage(
+                        "Unable to proceed, there are numbers present within the input"
+                    );
+                    return;
+                }
+            }
+
+            console.log("Validation check passed, roman-to-number");
+
+            if (id === "number-to-roman") {
+                url = "/number-to-roman";
+                if (checkForLetters(input.value)) {
+                    showMessage(
+                        "Unable to proceed, there are letters present within the input"
+                    );
+                    return;
+                }
+            }
+
+            console.log("Submitting form");
             submitFormData(url, input.value);
         });
     });

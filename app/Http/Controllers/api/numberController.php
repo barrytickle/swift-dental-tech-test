@@ -51,7 +51,14 @@ class numberController extends Controller
                 $roman = substr($roman, strlen($key));
             }
         }
-        return json_encode(array('status' => 'success', 'value' => $result));
+
+        
+
+        if($result !== 0){
+            return json_encode(array('status' => 'success', 'value' => $result));
+        } else {
+            return json_encode(array('status' => 'fail', 'value' => 'Input not valid'));
+        }
     }
 
     /**
